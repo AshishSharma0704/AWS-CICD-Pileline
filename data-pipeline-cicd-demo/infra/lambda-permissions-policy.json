@@ -9,8 +9,8 @@
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::YOUR_S3_BUCKET",
-        "arn:aws:s3:::YOUR_S3_BUCKET/*"
+        "arn:aws:s3:::testingrawdata-ashish-0704",
+        "arn:aws:s3:::testingrawdata-ashish-0704/*"
       ]
     },
     {
@@ -21,7 +21,7 @@
         "dynamodb:BatchWriteItem",
         "dynamodb:DescribeTable"
       ],
-      "Resource": "arn:aws:dynamodb:__AWS_REGION__:__AWS_ACCOUNT_ID__:table/YOUR_DYNAMODB_TABLE"
+      "Resource": "arn:aws:dynamodb:eu-north-1:837270737236:table/etl-test"
     },
     {
       "Sid": "LambdaBasicExecution",
@@ -31,7 +31,7 @@
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:__AWS_REGION__:__AWS_ACCOUNT_ID__:*"
+      "Resource": "arn:aws:logs:eu-north-1:837270737236:*"
     }
   ]
 }
