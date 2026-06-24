@@ -1,11 +1,11 @@
 """Pure transformation logic — unit-testable without AWS."""
 
+
 def clean_email(email: str) -> str:
     return email.strip().lower()
 
-def row_to_item(row: dict, source_key: str) -> dict:
-    print("ROW KEYS:", list(row.keys()))
 
+def row_to_item(row: dict, source_key: str) -> dict:
     customer_id = (
         row.get("customer_id")
         or row.get("\ufeffcustomer_id")
