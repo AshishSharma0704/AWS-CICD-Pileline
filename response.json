@@ -1,0 +1,1 @@
+{"errorMessage": "'customer_id'", "errorType": "KeyError", "requestId": "228f0fd8-1d59-42b2-a808-bc47d7276af4", "stackTrace": ["  File \"/var/task/lambda_function.py\", line 31, in lambda_handler\n    batch.put_item(Item=row_to_item(row, key))\n", "  File \"/var/task/transform.py\", line 10, in row_to_item\n    \"customer_id\": row[\"customer_id\"],\n"]}
