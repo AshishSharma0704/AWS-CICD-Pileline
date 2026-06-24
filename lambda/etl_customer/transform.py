@@ -2,7 +2,7 @@
 
 
 def clean_email(email: str) -> str:
-    return email.strip().lower()
+    return email.strip().upper()
 
 
 def row_to_item(row: dict, source_key: str) -> dict:
