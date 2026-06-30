@@ -9,10 +9,17 @@ phases:
       - pip install -r requirements-dev.txt
 
   pre_build:
-    commands:
-      - echo "Running CI checks inside CodePipeline..."
-      - flake8 lambdas shared tests --max-line-length=100 --exclude=__pycache__
-      - pytest tests/ -v
+  commands:
+    - echo "Running CI checks inside CodePipeline..."
+    - pwd
+    - ls -la
+    - ls -R
+    - python --version
+    - python -c "import os; print('CWD =', os.getcwd())"
+    - python -c "import sys; print('SYS.PATH =', sys.path)"
+    - python -c "import os; print('FILES =', os.listdir('.'))"
+    - flake8 lambdas shared tests --max-line-length=100 --exclude=__pycache__
+    - python -m pytest tests -v
 
   build:
     commands:
