@@ -11,17 +11,31 @@ phases:
   pre_build:
     commands:
       - echo "Running CI checks inside CodePipeline..."
-      - flake8 lambda tests --max-line-length=100 --exclude=__pycache__
+      - flake8 lambdas shared tests --max-line-length=100 --exclude=__pycache__
       - pytest tests/ -v
 
   build:
     commands:
-      - echo "Packaging Lambda deployment artifact..."
-      - cd lambda/etl_customer
-      - zip -r ../../function.zip .
-      - cd ../..
+      - echo "Packaging Earthquake Lambda..."
+
+      # Clean previous package
+      - rm -rf package function.zip
+
+      # Create temporary package directory
+      - mkdir package
+
+      # Copy Earthquake Lambda source
+      - cp -r lambdas/earthquake/* package/
+
+      # Copy shared modules
+      - cp -r shared package/
+
+      # Create deployment zip
+      - cd package
+      - zip -r ../function.zip .
+      - cd ..
 
 artifacts:
   files:
     - function.zip
-  name: etl-customer-artifact
+  name: earthquake-etl-artifact
