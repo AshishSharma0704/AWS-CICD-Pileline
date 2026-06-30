@@ -2,17 +2,21 @@ name: CI - Data Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - "feature/**"
     paths:
-      - 'lambdas/**'
-      - 'shared/**'
-      - 'tests/**'
-      - '.github/workflows/**'
-      - 'requirements-dev.txt'
-      - 'buildspec.yml'
+      - "lambdas/**"
+      - "shared/**"
+      - "tests/**"
+      - ".github/workflows/**"
+      - "requirements-dev.txt"
+      - "buildspec.yml"
 
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   lint-and-test:
