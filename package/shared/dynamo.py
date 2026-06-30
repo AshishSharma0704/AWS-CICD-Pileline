@@ -30,3 +30,4 @@ def delete_item(table, key):
     table.delete_item(
         Key=key
     )
+    

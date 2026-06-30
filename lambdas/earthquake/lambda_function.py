@@ -1,45 +1,64 @@
-import csv
-import io
 import json
-import os
+from urllib.request import urlopen
+from datetime import datetime, timezone
 
-import boto3
+from shared.config import (
+    RAW_BUCKET,
+    EARTHQUAKE_API,
+    EARTHQUAKE_PREFIX,
+    EARTHQUAKE_TABLE,
+)
 
-from transform import row_to_item
-
-S3_BUCKET = os.environ.get("S3_BUCKET", "testingrawdata")
-S3_KEY = os.environ.get("S3_KEY", "data-etl-test1/customer.csv")
-DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", "etl-test")
+from shared.s3 import upload_json
+from shared.dynamo import get_table, batch_write
+from shared.validators import validate_earthquake
+from shared.logger import info
+from parser import parse
 
 
 def lambda_handler(event, context):
-    s3 = boto3.client("s3")
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table(DYNAMODB_TABLE)
 
-    bucket = event.get("bucket", S3_BUCKET)
-    key = event.get("key", S3_KEY)
+    info("Fetching earthquake data...")
 
-    response = s3.get_object(Bucket=bucket, Key=key)
-    body = response["Body"].read().decode("utf-8")
+    response = urlopen(EARTHQUAKE_API)
 
-    reader = csv.DictReader(io.StringIO(body))
-    records_written = 0
+    data = json.loads(
+        response.read().decode("utf-8")
+    )
 
-    with table.batch_writer() as batch:
-        for row in reader:
-            batch.put_item(Item=row_to_item(row, key))
-            records_written += 1
+    file_name = (
+        EARTHQUAKE_PREFIX
+        + f"earthquake_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+    )
+
+    upload_json(
+        RAW_BUCKET,
+        file_name,
+        data
+    )
+
+    info("Raw JSON uploaded to S3")
+
+    items = []
+
+    for feature in data.get("features", []):
+
+        if not validate_earthquake(feature):
+            continue
+
+        items.append(parse(feature))
+
+    table = get_table(EARTHQUAKE_TABLE)
+
+    batch_write(
+        table,
+        items
+    )
+
+    info(f"{len(items)} records loaded")
 
     return {
         "statusCode": 200,
-        "body": json.dumps(
-            {
-                "message": "ETL completed successfully",
-                "bucket": bucket,
-                "key": key,
-                "records_written": records_written,
-                "table": DYNAMODB_TABLE,
-            }
-        ),
+        "records_loaded": len(items),
+        "s3_file": file_name
     }

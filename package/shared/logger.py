@@ -18,3 +18,4 @@ def warning(message):
 
 def error(message):
     logger.error(message)
+    
