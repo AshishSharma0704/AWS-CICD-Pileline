@@ -1,14 +1,13 @@
 import json
-from urllib.request import urlopen
 from datetime import datetime, timezone
+from urllib.request import urlopen
 
 from shared.config import (
     RAW_BUCKET,
-    EARTHQUAKE_API,
-    EARTHQUAKE_PREFIX,
-    EARTHQUAKE_TABLE,
+    API_URLS,
+    PREFIXES,
+    TABLES,
 )
-
 from shared.s3 import upload_json
 from shared.dynamo import get_table, batch_write
 from shared.validators import validate_earthquake
@@ -20,25 +19,29 @@ def lambda_handler(event, context):
 
     info("Fetching earthquake data...")
 
-    response = urlopen(EARTHQUAKE_API)
+    # Fetch data from API
+    response = urlopen(API_URLS["earthquake"])
 
     data = json.loads(
         response.read().decode("utf-8")
     )
 
+    # Create S3 object key
     file_name = (
-        EARTHQUAKE_PREFIX
+        PREFIXES["earthquake"]
         + f"earthquake_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
     )
 
+    # Upload raw JSON to S3
     upload_json(
-        RAW_BUCKET,
-        file_name,
-        data
+        bucket=RAW_BUCKET,
+        key=file_name,
+        data=data
     )
 
-    info("Raw JSON uploaded to S3")
+    info(f"Raw data uploaded to s3://{RAW_BUCKET}/{file_name}")
 
+    # Transform records
     items = []
 
     for feature in data.get("features", []):
@@ -48,17 +51,20 @@ def lambda_handler(event, context):
 
         items.append(parse(feature))
 
-    table = get_table(EARTHQUAKE_TABLE)
+    # Load into DynamoDB
+    table = get_table(TABLES["earthquake"])
 
     batch_write(
-        table,
-        items
+        table=table,
+        items=items
     )
 
-    info(f"{len(items)} records loaded")
+    info(f"{len(items)} records loaded into {TABLES['earthquake']}")
 
     return {
         "statusCode": 200,
         "records_loaded": len(items),
-        "s3_file": file_name
+        "bucket": RAW_BUCKET,
+        "s3_key": file_name,
+        "table": TABLES["earthquake"],
     }

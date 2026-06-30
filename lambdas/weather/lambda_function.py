@@ -1,45 +1,47 @@
-import csv
-import io
 import json
-import os
+from decimal import Decimal
+from datetime import datetime, timezone
+from urllib.request import urlopen
 
-import boto3
+from shared.config import RAW_BUCKET, PREFIXES, TABLES, API_URLS
+from shared.s3 import s3
+from shared.dynamo import dynamodb
 
-from transform import row_to_item
-
-S3_BUCKET = os.environ.get("S3_BUCKET", "testingrawdata")
-S3_KEY = os.environ.get("S3_KEY", "data-etl-test1/customer.csv")
-DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE", "etl-test")
+table = dynamodb.Table(TABLES["weather"])
 
 
 def lambda_handler(event, context):
-    s3 = boto3.client("s3")
-    dynamodb = boto3.resource("dynamodb")
-    table = dynamodb.Table(DYNAMODB_TABLE)
 
-    bucket = event.get("bucket", S3_BUCKET)
-    key = event.get("key", S3_KEY)
+    # Fetch weather data
+    response = urlopen(API_URLS["weather"])
+    data = json.loads(response.read().decode("utf-8"))
 
-    response = s3.get_object(Bucket=bucket, Key=key)
-    body = response["Body"].read().decode("utf-8")
+    # Save raw JSON to S3
+    file_name = (
+        f"{PREFIXES['weather']}"
+        f"weather_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+    )
 
-    reader = csv.DictReader(io.StringIO(body))
-    records_written = 0
+    s3.put_object(
+        Bucket=RAW_BUCKET,
+        Key=file_name,
+        Body=json.dumps(data)
+    )
 
-    with table.batch_writer() as batch:
-        for row in reader:
-            batch.put_item(Item=row_to_item(row, key))
-            records_written += 1
+    current = data["current"]
+
+    item = {
+        "city": "Delhi",
+        "temperature": Decimal(str(current["temperature_2m"])),
+        "humidity": Decimal(str(current["relative_humidity_2m"])),
+        "wind_speed": Decimal(str(current["wind_speed_10m"])),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+    table.put_item(Item=item)
 
     return {
         "statusCode": 200,
-        "body": json.dumps(
-            {
-                "message": "ETL completed successfully",
-                "bucket": bucket,
-                "key": key,
-                "records_written": records_written,
-                "table": DYNAMODB_TABLE,
-            }
-        ),
+        "message": "Weather ETL completed",
+        "s3_key": file_name
     }

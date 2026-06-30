@@ -33,7 +33,12 @@ TABLES = {
 # API URLs
 # ==========================
 
+# ==========================
+# API URLs
+# ==========================
+
 API_URLS = {
+
     "earthquake": (
         "https://earthquake.usgs.gov/fdsnws/event/1/query?"
         "format=geojson"
@@ -43,9 +48,18 @@ API_URLS = {
         "&orderby=time"
     ),
 
-    "weather": "",
+    "weather": (
+        "https://api.open-meteo.com/v1/forecast?"
+        "latitude=28.6139"
+        "&longitude=77.2090"
+        "&current=temperature_2m,relative_humidity_2m,wind_speed_10m"
+    ),
 
-    "product": "",
+    "product": (
+        "https://fakestoreapi.com/products"
+    ),
 
-    "transit": "",
+    "transit": (
+        "https://api-v3.mbta.com/routes"
+    )
 }
