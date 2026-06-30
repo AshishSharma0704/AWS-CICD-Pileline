@@ -7,7 +7,7 @@ Every Lambda imports values from here.
 # S3
 # ==========================
 
-RAW_BUCKET = "raw-data-platform"
+RAW_BUCKET = "multi-source-raw-data"
 
 PREFIXES = {
     "earthquake": "earthquake/",
