@@ -9,42 +9,43 @@ Every Lambda imports values from here.
 
 RAW_BUCKET = "raw-data-platform"
 
-EARTHQUAKE_PREFIX = "earthquake/"
-WEATHER_PREFIX = "weather/"
-PRODUCT_PREFIX = "products/"
-TRANSIT_PREFIX = "transit/"
+PREFIXES = {
+    "earthquake": "earthquake/",
+    "weather": "weather/",
+    "product": "product/",
+    "transit": "transit/",
+}
 
 
 # ==========================
 # DynamoDB Tables
 # ==========================
 
-EARTHQUAKE_TABLE = "EarthquakeEvents"
-
-WEATHER_TABLE = "WeatherMetrics"
-
-PRODUCT_TABLE = "ProductCatalog"
-
-TRANSIT_TABLE = "TransitRecords"
+TABLES = {
+    "earthquake": "EarthquakeEvents",
+    "weather": "WeatherMetrics",
+    "product": "ProductCatalog",
+    "transit": "TransitRecords",
+}
 
 
 # ==========================
 # API URLs
 # ==========================
 
-EARTHQUAKE_API = (
-    "https://earthquake.usgs.gov/fdsnws/event/1/query?"
-    "format=geojson"
-    "&starttime=2026-05-01"
-    "&endtime=2026-05-27"
-    "&minmagnitude=2.5"
-    "&orderby=time"
-)
+API_URLS = {
+    "earthquake": (
+        "https://earthquake.usgs.gov/fdsnws/event/1/query?"
+        "format=geojson"
+        "&starttime=2026-05-01"
+        "&endtime=2026-05-27"
+        "&minmagnitude=2.5"
+        "&orderby=time"
+    ),
 
-# Placeholder APIs (we'll update later)
+    "weather": "",
 
-WEATHER_API = ""
+    "product": "",
 
-PRODUCT_API = ""
-
-TRANSIT_API = ""
+    "transit": "",
+}
