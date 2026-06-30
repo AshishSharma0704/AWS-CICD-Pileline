@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
 
-# Allow imports from lambda/etl_customer without installing as a package.
-sys.path.insert(0, str(Path(__file__).parent / ".." / "lambda"))
+ROOT = Path(__file__).resolve().parent.parent
+
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
