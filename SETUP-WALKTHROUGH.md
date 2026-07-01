@@ -167,6 +167,10 @@ Update placeholders in policy JSON (`__ARTIFACT_BUCKET__`, `__LAMBDA_NAME__`, `_
 | Buildspec | `buildspec.yml` (from your repo) |
 | Service role | `data-pipeline-codebuild-role` |
 
+**Environment variables**
+- `ARTIFACTS_BUCKET`: name of an existing S3 bucket for SAM packaging artifacts
+- `STACK_NAME`: optional, defaults to `multi-source-etl`
+
 See `infra/codebuild-project.json` for full reference.
 
 ### 6f. CodePipeline (V2)
