@@ -23,9 +23,9 @@ PREFIXES = {
 
 TABLES = {
     "earthquake": "EarthquakeEvents",
-    "weather": "WeatherMetrics",
-    "product": "ProductCatalog",
-    "transit": "TransitRecords",
+    "weather": "WeatherReadings",
+    "product": "Products",
+    "transit": "TransitData",
 }
 
 

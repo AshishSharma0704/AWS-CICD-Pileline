@@ -1,48 +1,23 @@
 version: 0.2
-
+env:
+  variables:
+    STACK_NAME: "aws-pipeline-stack"
+    ARTIFACTS_BUCKET: ""
 phases:
   install:
     runtime-versions:
-      python: 3.12
+      python: 3.11
     commands:
-      - pip install --upgrade pip
-      - pip install -r requirements-dev.txt
-
+      - python -m pip install --upgrade pip
+      - pip install aws-sam-cli awscli
   pre_build:
     commands:
-      - echo "Running CI checks inside CodePipeline..."
-      - pwd
-      - ls -la
-      - ls -R
-      - python --version
-      - python -c "import os; print('CWD =', os.getcwd())"
-      - python -c "import sys; print('SYS.PATH =', sys.path)"
-      - python -c "import os; print('FILES =', os.listdir('.'))"
-      - flake8 lambdas shared tests --max-line-length=100 --exclude=__pycache__
-      - python -m pytest tests -v
-
+      - echo "Starting SAM build..."
   build:
     commands:
-      - echo "Packaging Earthquake Lambda..."
-
-      # Clean previous package
-      - rm -rf package function.zip
-
-      # Create temporary package directory
-      - mkdir package
-
-      # Copy Earthquake Lambda source
-      - cp -r lambdas/earthquake/* package/
-
-      # Copy shared modules
-      - cp -r shared package/
-
-      # Create deployment zip
-      - cd package
-      - zip -r ../function.zip .
-      - cd ..
-
+      - sam build --template-file infrastructure/template.yaml
+      - sam package --s3-bucket $ARTIFACTS_BUCKET --output-template-file packaged.yaml
+      - sam deploy --template-file packaged.yaml --stack-name $STACK_NAME --capabilities CAPABILITY_NAMED_IAM --no-confirm-changeset
 artifacts:
   files:
-    - function.zip
-  name: earthquake-etl-artifact
+    - packaged.yaml

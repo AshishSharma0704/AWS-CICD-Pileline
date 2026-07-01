@@ -1,1 +1,0 @@
-{"statusCode": 200, "body": "{\"message\": \"ETL completed successfully\", \"bucket\": \"testingrawdata-ashish-0704\", \"key\": \"data-etl-test1/customer.csv\", \"records_written\": 5, \"table\": \"etl-test\"}"}
