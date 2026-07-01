@@ -48,3 +48,26 @@ def validate_weather(data):
             return False
 
     return True
+
+
+def validate_product(data):
+    if data is None or not isinstance(data, list):
+        return False
+
+    for item in data:
+        if not isinstance(item, dict):
+            return False
+        if item.get("id") is None:
+            return False
+
+    return True
+
+
+def validate_transit(data):
+    if data is None or not isinstance(data, dict):
+        return False
+
+    if "data" not in data or not isinstance(data["data"], list):
+        return False
+
+    return True

@@ -61,31 +61,6 @@
             ]
           }
         ]
-      },
-      {
-        "name": "Deploy",
-        "actions": [
-          {
-            "name": "DeployLambda",
-            "actionTypeId": {
-              "category": "Deploy",
-              "owner": "AWS",
-              "provider": "Lambda",
-              "version": "1"
-            },
-            "runOrder": 1,
-            "configuration": {
-              "FunctionName": "__LAMBDA_NAME__",
-              "FunctionAlias": "prod",
-              "DeployStrategy": "AllAtOnce"
-            },
-            "inputArtifacts": [
-              {
-                "name": "BuildOutput"
-              }
-            ]
-          }
-        ]
       }
     ]
   }

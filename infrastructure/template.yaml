@@ -1,0 +1,173 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Deploy 4 ETL Lambda functions with separate raw S3 buckets and DynamoDB tables.
+
+Parameters:
+  StackNamePrefix:
+    Type: String
+    Default: multi-source-etl
+    Description: Prefix for created resources.
+
+Resources:
+  EarthquakeRawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${StackNamePrefix}-earthquake-raw-${AWS::AccountId}-${AWS::Region}"
+
+  ProductRawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${StackNamePrefix}-product-raw-${AWS::AccountId}-${AWS::Region}"
+
+  TransitRawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${StackNamePrefix}-transit-raw-${AWS::AccountId}-${AWS::Region}"
+
+  WeatherRawBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${StackNamePrefix}-weather-raw-${AWS::AccountId}-${AWS::Region}"
+
+  EarthquakeTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${StackNamePrefix}-earthquake-table"
+      AttributeDefinitions:
+        - AttributeName: event_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: event_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  ProductTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${StackNamePrefix}-product-table"
+      AttributeDefinitions:
+        - AttributeName: product_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: product_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  TransitTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${StackNamePrefix}-transit-table"
+      AttributeDefinitions:
+        - AttributeName: route_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: route_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  WeatherTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${StackNamePrefix}-weather-table"
+      AttributeDefinitions:
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: timestamp
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  EarthquakeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${StackNamePrefix}-earthquake-fn"
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.12
+      CodeUri: lambdas/earthquake/
+      Environment:
+        Variables:
+          RAW_BUCKET: !Ref EarthquakeRawBucket
+          TABLE_NAME: !Ref EarthquakeTable
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref EarthquakeRawBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref EarthquakeTable
+
+  ProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${StackNamePrefix}-product-fn"
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.12
+      CodeUri: lambdas/product/
+      Environment:
+        Variables:
+          RAW_BUCKET: !Ref ProductRawBucket
+          TABLE_NAME: !Ref ProductTable
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref ProductRawBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductTable
+
+  TransitFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${StackNamePrefix}-transit-fn"
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.12
+      CodeUri: lambdas/transit/
+      Environment:
+        Variables:
+          RAW_BUCKET: !Ref TransitRawBucket
+          TABLE_NAME: !Ref TransitTable
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref TransitRawBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TransitTable
+
+  WeatherFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${StackNamePrefix}-weather-fn"
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.12
+      CodeUri: lambdas/weather/
+      Environment:
+        Variables:
+          RAW_BUCKET: !Ref WeatherRawBucket
+          TABLE_NAME: !Ref WeatherTable
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref WeatherRawBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WeatherTable
+
+Outputs:
+  EarthquakeFunctionArn:
+    Value: !GetAtt EarthquakeFunction.Arn
+  ProductFunctionArn:
+    Value: !GetAtt ProductFunction.Arn
+  TransitFunctionArn:
+    Value: !GetAtt TransitFunction.Arn
+  WeatherFunctionArn:
+    Value: !GetAtt WeatherFunction.Arn
+  EarthquakeBucket:
+    Value: !Ref EarthquakeRawBucket
+  ProductBucket:
+    Value: !Ref ProductRawBucket
+  TransitBucket:
+    Value: !Ref TransitRawBucket
+  WeatherBucket:
+    Value: !Ref WeatherRawBucket
+  EarthquakeTableName:
+    Value: !Ref EarthquakeTable
+  ProductTableName:
+    Value: !Ref ProductTable
+  TransitTableName:
+    Value: !Ref TransitTable
+  WeatherTableName:
+    Value: !Ref WeatherTable

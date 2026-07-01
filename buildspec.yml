@@ -7,6 +7,7 @@ phases:
     commands:
       - pip install --upgrade pip
       - pip install -r requirements-dev.txt
+      - pip install aws-sam-cli
 
   pre_build:
     commands:
@@ -23,26 +24,35 @@ phases:
 
   build:
     commands:
-      - echo "Packaging Earthquake Lambda..."
-
-      # Clean previous package
-      - rm -rf package function.zip
-
-      # Create temporary package directory
-      - mkdir package
-
-      # Copy Earthquake Lambda source
-      - cp -r lambdas/earthquake/* package/
-
-      # Copy shared modules
-      - cp -r shared package/
-
-      # Create deployment zip
-      - cd package
-      - zip -r ../function.zip .
-      - cd ..
+      - echo "Building SAM application..."
+      - sam build --template-file infrastructure/template.yaml
+      - echo "Packaging SAM application..."
+      - |
+        if [ -z "$ARTIFACTS_BUCKET" ]; then
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ARTIFACTS_BUCKET="sam-artifacts-$ACCOUNT_ID-$AWS_REGION"
+        fi
+      - echo "Using ARTIFACTS_BUCKET=$ARTIFACTS_BUCKET"
+      - |
+        if ! aws s3api head-bucket --bucket "$ARTIFACTS_BUCKET" 2>/dev/null; then
+          aws s3 mb "s3://$ARTIFACTS_BUCKET" --region "$AWS_REGION"
+        fi
+      - |
+        if [ -z "$STACK_NAME" ]; then
+          STACK_NAME="multi-source-etl"
+        fi
+      - echo "Using STACK_NAME=$STACK_NAME"
+      - sam package --template-file .aws-sam/build/template.yaml --s3-bucket "$ARTIFACTS_BUCKET" --output-template-file packaged.yaml
+      - echo "Deploying SAM application..."
+      - sam deploy --template-file packaged.yaml --stack-name "$STACK_NAME" --parameter-overrides StackNamePrefix="$STACK_NAME" --capabilities CAPABILITY_NAMED_IAM --no-confirm-changeset
+      - echo "Invoking ETL Lambdas..."
+      - aws lambda invoke --function-name "$STACK_NAME-earthquake-fn" --payload '{}' /tmp/earthquake.json
+      - aws lambda invoke --function-name "$STACK_NAME-weather-fn" --payload '{}' /tmp/weather.json
+      - aws lambda invoke --function-name "$STACK_NAME-product-fn" --payload '{}' /tmp/product.json
+      - aws lambda invoke --function-name "$STACK_NAME-transit-fn" --payload '{}' /tmp/transit.json
+      - echo "ETL invocation complete"
 
 artifacts:
   files:
-    - function.zip
-  name: earthquake-etl-artifact
+    - packaged.yaml
+  discard-paths: yes
