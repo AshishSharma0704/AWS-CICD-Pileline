@@ -1,6 +1,3 @@
-from decimal import Decimal
-
-
 def parse(route):
     attributes = route.get("attributes", {})
     return {
