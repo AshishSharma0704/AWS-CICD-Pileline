@@ -21,6 +21,21 @@
         "arn:aws:s3:::__ARTIFACT_BUCKET__",
         "arn:aws:s3:::__ARTIFACT_BUCKET__/*"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters"
+      ],
+      "Resource": "arn:aws:ssm:eu-north-1:837270737236:parameter/my-sam-artifacts-123456789012-us-east-1"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt"
+      ],
+      "Resource": "*"
     }
   ]
 }
